@@ -1,4 +1,4 @@
-# Quick Modern Object Pascal for Programmers
+﻿# Quick Modern Object Pascal for Programmers
 Michalis Kamburelis
 :toc: left
 :toclevels: 4
@@ -63,7 +63,7 @@ end;
 
 You can also treat the function name (like `MyFunction` in example above) as the variable, to which you can assign. But I would discourage it in new code, as it looks "fishy" when used on the right side of the assignment expression. Just use `Result` always when you want to read or set the function result.
 
-If you want to call the function itself recursively, you can of course do it. If you're calling a parameter-less function recursively, be sure to specify the parenthesis (even though in Pascal you can usually omit the parentheses for a parameter-less function), this makes a recursive call to a parameter-less function different from accessing this function's current result. Like this:
+If you want to call the function itself recursively, you can of course do it. If you're calling a parameter-less function recursively, be sure to specify the parenthesis `()` (even though in Pascal you can usually omit the parentheses for a parameter-less function), this makes a recursive call to a parameter-less function different from accessing this function's current result. Like this:
 
 [source,pascal]
 ----
@@ -88,6 +88,26 @@ begin
     Exit(NewName);
   Result := ExistingNames + ', ' + NewName;
 end;
+----
+
+Another useful feature of Pascal is that function result can be discarded and the function may be used identically to a procedure. For example:
+
+[source,pascal]
+----
+var count: Integer;
+    myCount: Integer;
+
+function CountMe: Integer;
+begin
+  inc(count);
+  result := count;
+end;
+
+begin
+  count := 10;
+  CountMe; //function result is discarded, but the function is executed
+  myCount := CountMe; //normal usage of the function
+end.
 ----
 
 ### Testing (if)
@@ -153,7 +173,7 @@ The _logical operators_ are called `and`, `or`, `not`, `xor`. Their meaning is p
 
 The _relational (comparison)_ operators are `=`, `<>`, `>`, `<`, `\<=`, `>=`. If you're accustomed to C-like languages, note that in Pascal you compare two values (check are they equal) using a single equality character `A = B` (unlike in C where you use `A == B`). The special _assignment_ operator in Pascal is `:=`.
 
-The _logical (or bit-wise) operators have a higher precedence than relational operators_. So you may need to use parenthesis around some expressions.
+The _logical (or bit-wise) operators have a higher precedence than relational operators_. So you may need to use parenthesis around some expressions to specify the correct order of their processing.
 
 For example this is a compilation error:
 
@@ -402,6 +422,13 @@ A program can use a unit by a `uses` keyword:
 [source,pascal]
 ----
 include::code-samples/myunit_test.lpr[]
+----
+
+Another very useful feature of units is `initialization` and `finalization` sections that contain actions preformed at program start and end.
+
+[source,pascal]
+----
+include::code-samples/initialization_finalization.pas[]
 ----
 
 ### Units using each other
