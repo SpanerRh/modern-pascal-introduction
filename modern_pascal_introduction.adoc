@@ -34,7 +34,7 @@ include::code-samples/hello_world.lpr[]
 This is a complete program that you can _compile_ and _run_.
 
 * If you use the command-line FPC, just create a new file `myprogram.lpr` and execute `fpc myprogram.lpr`.
-* If you use _Lazarus_, create a new project (menu _Project_ -> _New Project_ -> _Simple Program_). Save it as `myprogram` and paste this source code as the main file. Compile using the menu item _Run -> Compile_.
+* If you use _Lazarus_, create a new project (menu _Project_ -> _New Project_ -> _Simple Program_). Save it as `myprogram` and paste this source code as the main file. Compile using the menu item _Run -> Compile_ (F9 hotkey).
 * This is a command-line program, so in either case -- just run the compiled executable from the command-line.
 
 The rest of this article talks about the Object Pascal language, so don't expect to see anything more fancy than the command-line stuff. If you want to see something cool, just create a new GUI project in _Lazarus_ (_Project_ -> _New Project_ -> _Application_).
@@ -165,7 +165,7 @@ begin
   if A = 0 and B <> 0 then ... // INCORRECT example
 ----
 
-The above fails to compile, because the compiler first tries to preform a higher-priority bit-wise `and` in the middle of the expression which turns out to be: `(0 and B)` which returns an integer value. Then the compiler goes on and applies `=` operator which yields a boolean value `A = (0 and B)`. And finally the "type mismatch" error is risen after trying to compare the boolean value `A = (0 and B)` and integer value `0`.
+The above fails to compile, because the compiler first tries to preform a higher-priority bit-wise `and` in the middle of the expression which turns out to be: `(0 and B)` - a bit-wise operation which returns an integer value. Then the compiler goes on and applies `=` operator which yields a boolean value `A = (0 and B)`. And finally the "type mismatch" error is risen after trying to compare the boolean value `A = (0 and B)` and integer value `0`.
 
 This is correct:
 
@@ -219,7 +219,7 @@ case SomeValue of
 end;
 ----
 
-The `else` clause is optional. When no condition matches, and there's no `else`, then nothing happens.
+The `else` clause is optional (and corresponds to `default` in C-like languages). When no condition matches, and there's no `else`, then nothing happens.
 
 In you come from C-like languages, and compare this with `switch` statement in these languages, you will notice that there is no automatic _fall-through_. This is a deliberate blessing in Pascal. You don't have to remember to place `break` instructions. In every execution, _at most one_ branch of the `case` is executed, that's it.
 
@@ -920,7 +920,7 @@ if Obj1 <> nil then
 +
 Trying to access a field of a `nil` instance results in a predictable exception at runtime. So even if some code will not check `Obj1 <> nil`, and will blindly access `Obj1` field, you will get a clear exception at runtime.
 +
-Some goes for calling a virtual method, or calling a non-virtual method that accessed a field of a nil instance.
+Same goes for calling a virtual method, or calling a non-virtual method that accessed a field of a nil instance.
 
 2. With `Obj2`, things are less predictable. It's not `nil`, but it's invalid. Trying to access a field of a non-nil invalid instance
 
@@ -1323,7 +1323,7 @@ type
 
 Note that the definition is recursive (type `PMyRecord` is defined using type `TMyRecord`, while `TMyRecord` is defined using `PMyRecord`). It is allowed to define a pointer type to a _not-yet-defined type_, as long as it will be resolved within the same `type` block.
 
-You can allocate and free pointers using the `New` / `Dispose` methods, or (more low-level, not type-safe) `GetMem` / `FreeMem` methods. You dereference the pointer (to access the stuff _pointed by_) you append the `^` operator. To make the inverse operation, which is to _get a pointer of an existing variable_, you prefix it with `@` operator.
+You can allocate and free pointers using the `New` / `Dispose` methods, or (more low-level, not type-safe) `GetMem` / `FreeMem` methods. You dereference the pointer (to access the stuff _pointed by_) you append the `^` operator (e.g. `PMyRecord^.Value`). To make the inverse operation, which is to _get a pointer of an existing variable_, you prefix it with `@` operator (e.g. `@myRecordVariable`).
 
 There is also an untyped `Pointer` type, similar to `void*` in C-like languages. It is completely unsafe, and can be typecasted to any other pointer type.
 
@@ -1553,7 +1553,7 @@ begin
   // This would always create an instance of exactly TMyClass:
   //Result := TMyClass.Create(AOwner);
   // This can potentially create an instance of TMyClass descendant:
-  Result := TMyClassRef(ClassType).Create(AOwner);
+  Result := TMyClassRef(self.ClassType).Create(AOwner);
   Result.Assign(Self);
 end;
 ----
@@ -1618,7 +1618,7 @@ You can change this name, although be careful with this -- if you define `Create
 
 In the base `TObject` it is not virtual, and when creating descendants you're free to change the parameters. The new constructor will hide the constructor in ancestor (note: don't put here `overload`, unless you want to break it).
 
-In the `TComponent` descendants, you should override it's `constructor Create(AOwner: TComponent);`. For streaming functionality, to create a class without knowing it's type at compile time, having virtual constructors is very useful (see "class references" below).
+In the `TComponent` descendants, you should override it's `constructor Create(AOwner: TComponent);`. For streaming functionality, to create a class without knowing it's type at compile time, having virtual constructors is very useful (see <<Class references>> above).
 
 ### An exception in constructor
 
