@@ -323,7 +323,6 @@ var
 begin
   for AnimalKind in TAnimalKind do...
 ----
-
 ** It can iterate over all items included in the set:
 +
 [source,pascal]
@@ -335,7 +334,6 @@ begin
   Animals := [akDog, akCat];
   for AK in Animals do ...
 ----
-
 ** And it works on custom list types, generic or not, like `TObjectList` or `TFPGObjectList`.
 +
 [source,pascal]
@@ -358,6 +356,7 @@ Writeln('You can output an integer: ', 3 * 4);
 Writeln('You can pad an integer: ', 666:10);
 Writeln('You can output a float: ', Pi:1:4);
 ----
+
 To explicitly use newline in the string, use the `LineEnding` constant (from FPC RTL). (The _Castle Game Engine_ defines also a shorter `NL` constant.) Pascal strings do not interpret any special backslash sequences, so writing
 
 [source,pascal]
@@ -565,6 +564,7 @@ Sometimes you want to take an identifier from one unit, and _expose_ it in a new
 Sometimes this is necessary to preserve backward compatibility with previous unit versions. Sometimes it's nice to "hide" an internal unit this way.
 
 This can be done by redefining the identifier in your new unit.
+
 [source,pascal]
 ----
 {$mode objfpc}{$H+}{$J-}
@@ -653,6 +653,7 @@ if A is TMyClass then
 if A is TMyClass then
   TMyClass(A).CallSomeMethodOfMyClass;
 ----
+
 ### Properties
 
 Properties are a very nice _"syntax sugar"_ to
@@ -714,6 +715,7 @@ When declaring a property you specify:
 . Moreover, the property may have a default value (provided after `default` keyword).
 
 The compiler checks that the types and parameters of indicated fields and methods match with the property type. For example, to read an `Integer` property you have to either provide an `Integer` field, or a parameter-less method that returns an `Integer`.
+
 
 Technically, for the compiler, the "getter" and "setter" methods are just normal methods and they can do absolutely anything (including side-effects or randomization). But it's a good convention to design properties to behave more-or-less like fields:
 
@@ -888,9 +890,9 @@ begin
   inherited;
   // Actually, the parameter true (OwnsObjects) is already the default
   Guns := TGunList.Create(true);
-  Gun1 := TGun.Create(Self);
+  Gun1 := TGun.Create;
   Guns.Add(Gun1);
-  Gun2 := TGun.Create(Self);
+  Gun2 := TGun.Create;
   Guns.Add(Gun2);
 end;
 
@@ -940,7 +942,6 @@ end;
 
 1. At the end of this block, the `Obj1` is `nil`. If some code has to access it, it can reliably use `if Obj1 <> nil then ...` to avoid calling methods on a freed instance, like
 +
-
 [source,pascal]
 ----
 if Obj1 <> nil then
@@ -952,7 +953,6 @@ Trying to access a field of a `nil` instance results in a predictable exception 
 Same goes for calling a virtual method, or calling a non-virtual method that accessed a field of a nil instance.
 
 2. With `Obj2`, things are less predictable. It's not `nil`, but it's invalid. Trying to access a field of a non-nil invalid instance
-
 //(or call a method that accessed a field of such instance)
 results in an unpredictable behavior -- maybe an access violation exception, maybe a garbage data returned.
 
@@ -1146,7 +1146,6 @@ The callback can be:
 ----
 include::code-samples/callbacks.lpr[]
 ----
-
 * A method: declare with `of object` at the end.
 +
 [source,pascal]
@@ -1182,7 +1181,7 @@ Unfortunately, you need to write ugly `@TMyClass(nil).Add` instead of just `@TMy
 
 A powerful feature of any modern language. The definition of something (typically, of a class) can be parameterized with another type. The most typical example is when you need to create a container (a list, dictionary, tree, graph...): you can define _a list of type T_, and then _specialize_ it to instantly get _a list of integers_, _a list of strings_, _a list of TMyRecord_, and so on.
 
-The generics in Pascal are realized much like generics in C++. Which means that they are "expanded" at the specialization time, a _little_ like macros (but when expanding, the identifiers from the generic definition are used, so you cannot "inject" any unexpected behavior into a generic when specializing it). In effect this means that they are very fast (can be optimized for each particular type)  and work with types of any size. You can use a primitive type (integer, float) as well as a record as well as a class when specializing a generic.
+The generics in Pascal are implemented much like generics in C++. Which means that they are "expanded" at the specialization time, a _little_ like macros (but when expanding, the identifiers from the generic definition are used, so you cannot "inject" any unexpected behavior into a generic when specializing it). In effect this means that they are very fast (can be optimized for each particular type)  and work with types of any size. You can use a primitive type (integer, float) as well as a record as well as a class when specializing a generic.
 // Unlike in Java, you are *not* limited to only generics of things that are a reference.
 
 [source,pascal]
@@ -1315,6 +1314,7 @@ include::code-samples/records.lpr[]
 ----
 
 In modern Object Pascal, your first instinct should be to design a `class`, not a `record` -- because classes are packed with useful features, like constructors and inheritance.
+
 But records are still very useful when you need speed or a predictable memory layout:
 
 * Records do not have any constructor or destructor. You just define a variable of a record type. It has undefined contents (memory garbage) at the beginning (except auto-managed types, like strings; they are guaranteed to be initialized to be empty, and finalized to free the reference count). So you have to be more careful when dealing with records, but it gives you some performance gain.
@@ -1604,12 +1604,12 @@ Simple way to do it is then to create a global procedure that takes an instance 
 
 [source,pascal]
 ----
-procedure Render(const O: TMy3DObject; const Color: TColor);
+procedure Render(const Obj1: TMy3DObject; const Color: TColor);
 var
   I: Integer;
 begin
-  for I := 0 to O.ShapesCount - 1 do
-    RenderMesh(O.Shape[I].Mesh, Color);
+  for I := 0 to Obj1.ShapesCount - 1 do
+    RenderMesh(Obj1.Shape[I].Mesh, Color);
 end;
 ----
 
@@ -1628,7 +1628,7 @@ procedure TMy3DObjectHelper.Render(const Color: TColor);
 var
   I: Integer;
 begin
-  // note that we access ShapesCount, Shape without any qualifiers here
+  { note that we access ShapesCount, Shape without any qualifiers here }
   for I := 0 to ShapesCount - 1 do
     RenderMesh(Shape[I].Mesh, Color);
 end;
@@ -1827,9 +1827,7 @@ You can instead cast the instance as an interface implicitly:
 UseThroughInterface(Cx);
 ----
 
-In this case, the typecast must be valid at compile-time. So this will compile for `C1` and `C2` (that are declared as classes that implement `IMyInterface`).
-
-But it will not compile for `C3`.
+In this case, the typecast must be valid at compile-time. So this will compile for `C1` and `C2` (that are declared as classes that implement `IMyInterface`). But it will not compile for `C3`.
 
 In essence, this typecast looks and works just like for regular classes. Wherever an instance of a class `TMyClass` is required, you can always use there a variable that is declared with a class of `TMyClass`, *or `TMyClass` descendant*. The same rule applies to interfaces. No need for any explicit typecast in such situations.
 
